@@ -1,3 +1,4 @@
+# author: Jonny Kram
 """
 sequences.py -- Python ports of all five light sequences
 

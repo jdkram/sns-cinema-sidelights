@@ -1,3 +1,4 @@
+# author: Jonny Kram
 """
 preview.py -- terminal renderer for light sequence simulation
 

@@ -1,3 +1,4 @@
+// author: Paul?
 #include "CSequenceManager.h"
 
 #include <iostream>

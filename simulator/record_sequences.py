@@ -1,3 +1,4 @@
+# author: Jonny Kram
 """
 record_sequences.py -- Generate asciinema recordings of all sequences
 

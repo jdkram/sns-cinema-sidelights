@@ -1,3 +1,4 @@
+// author: Jonny Kram
 #include "CEvent.h"
 
 //#include "../sequences/CSequence.h"

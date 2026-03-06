@@ -1,3 +1,7 @@
+---
+human-authors: Jonny Kram
+---
+
 # Star and Shadow sidelight controller
 
 Repository status: this is the active public development repository for the sidelight controller.

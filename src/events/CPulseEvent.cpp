@@ -1,3 +1,4 @@
+// author: Jonny Kram
 #include "CPulseEvent.h"
 
 #include <iostream>

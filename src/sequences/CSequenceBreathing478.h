@@ -1,5 +1,6 @@
 #ifndef CSEQUENCEBREATHING478_H
 #define CSEQUENCEBREATHING478_H
+// author: Jonny Kram
 
 #include "CSequence.h"
 #include "../CLEDManager.h"

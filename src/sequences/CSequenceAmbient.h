@@ -1,3 +1,4 @@
+// author: Jonny Kram
 #include "CSequence.h"
 #include "../CLEDManager.h"
 

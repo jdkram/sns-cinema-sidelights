@@ -1,3 +1,4 @@
+// author: Jonny Kram
 #include "CSequenceEmber.h"
 
 #include <cstdlib>

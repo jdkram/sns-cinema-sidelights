@@ -1,3 +1,7 @@
+---
+human-authors: Jonny Kram
+---
+
 # Baseline sign-off checklist (before refactors)
 
 Use this checklist to confirm current behaviour is stable before introducing changes such as pattern config refactors.

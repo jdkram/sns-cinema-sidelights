@@ -1,3 +1,7 @@
+---
+human-authors: Jonny Kram
+---
+
 # Sequence simulator
 
 A Python tool for writing and previewing new light sequences on your laptop,

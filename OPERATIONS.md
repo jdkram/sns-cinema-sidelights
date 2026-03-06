@@ -1,3 +1,7 @@
+---
+human-authors: Jonny Kram
+---
+
 # Operations plan: connectivity, hardening, and updates
 
 This document answers one key question:

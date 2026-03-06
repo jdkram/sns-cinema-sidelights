@@ -1,3 +1,4 @@
+# author: Jonny Kram
 """
 check_buttons.py -- quick manual verification of button wiring
 

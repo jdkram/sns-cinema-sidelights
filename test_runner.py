@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# author: Jonny Kram
 """
 test_runner.py -- GPIO button hardware diagnostic and stress test
 

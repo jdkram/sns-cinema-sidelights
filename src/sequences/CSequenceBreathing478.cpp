@@ -1,3 +1,4 @@
+// author: Jonny Kram
 #include "CSequenceBreathing478.h"
 
 // Port of simulator/sequences.py :: SequenceBreathing478

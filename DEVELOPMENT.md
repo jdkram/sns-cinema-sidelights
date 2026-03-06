@@ -1,3 +1,7 @@
+---
+human-authors: Jonny Kram
+---
+
 # Development guide: adding or changing light patterns
 
 This guide explains how to safely create new light sequences.

@@ -1,3 +1,4 @@
+# author: Jonny Kram
 """
 upload_casts.py -- Upload all .cast files in ./simulator/recordings to asciinema.org
 

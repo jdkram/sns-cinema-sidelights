@@ -1,3 +1,7 @@
+---
+human-authors: Jonny Kram
+---
+
 # Security and disclosure policy
 
 ## Access control

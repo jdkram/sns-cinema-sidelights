@@ -1,5 +1,6 @@
 #ifndef CSEQUENCEEMBER_H
 #define CSEQUENCEEMBER_H
+// author: Jonny Kram
 
 #include "CSequence.h"
 #include "../CLEDManager.h"

@@ -1,3 +1,4 @@
+# author: Jonny Kram
 """
 engine.py -- Python port of the C++ sequence engine
 

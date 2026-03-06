@@ -1,3 +1,7 @@
+---
+human-authors: Jonny Kram
+---
+
 # Third-party notices
 
 This project includes `pca9685/src/pca9685.c` and `pca9685/src/pca9685.h`, which are based on a wiringPi extension by Reinhard Sprung.
