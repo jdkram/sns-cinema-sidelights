@@ -52,10 +52,11 @@ static const char* ENTRY_NAMES[] = {
     "14: DIAG sweep",         // each LED individually, 2s each (bypasses event engine)
     "15: DIAG fade",          // smooth 0->100->0 on all LEDs (bypasses event engine)
     "16: DIAG half",          // all LEDs 50% for 10s (bypasses event engine)
+    "17: DIAG I2C timing",    // measures microseconds per pwmWrite call
 };
 static const int SEQUENCE_COUNT = 12;
 static const int DIAG_START = 13;
-static const int ENTRY_COUNT = 16;
+static const int ENTRY_COUNT = 17;
 
 #define BUTTON_1 22
 #define BUTTON_2 27
@@ -166,6 +167,42 @@ static int runDiagnostic(int diagNumber) {
         usleep(10000000);
 
         cout << "Turning all LEDs off..." << endl;
+        for (int led = 1; led <= 24; led++) {
+            ledManager->ledBrightnessSet(led, 0);
+        }
+        cout << "Done." << endl;
+
+    } else if (diagNumber == 17) {
+        // Measure how long a single pwmWrite call takes via I2C.
+        // Tests the 'command flooding' hypothesis: if writes take >> 0.4ms each,
+        // the 10ms update loop is mostly blocked in I2C, not running logic.
+        cout << "Measuring I2C write speed. No visual output expected." << endl;
+        cout << "Expected: ~50-500 us per LED at standard I2C rates." << endl;
+        cout << "If >> 1 ms per LED, I2C is a throughput bottleneck." << endl;
+
+        long totalUs = 0;
+        for (int i = 0; i < 100; i++) {
+            auto tStart = std::chrono::steady_clock::now();
+            ledManager->ledBrightnessSet(1, 75);
+            auto tEnd = std::chrono::steady_clock::now();
+            totalUs += std::chrono::duration_cast<std::chrono::microseconds>(tEnd - tStart).count();
+        }
+        long avgUs = totalUs / 100;
+        cout << "Single LED write avg (100 samples): " << avgUs << " us" << endl;
+        cout << "  24-LED update would take: " << (avgUs * 24) << " us = "
+             << (avgUs * 24 / 1000) << " ms" << endl;
+
+        cout << "\n10 full 24-LED rounds:" << endl;
+        for (int round = 1; round <= 10; round++) {
+            auto tStart = std::chrono::steady_clock::now();
+            for (int led = 1; led <= 24; led++) {
+                ledManager->ledBrightnessSet(led, 75);
+            }
+            long us = std::chrono::duration_cast<std::chrono::microseconds>(
+                std::chrono::steady_clock::now() - tStart).count();
+            cout << "  Round " << round << ": " << us << " us" << endl;
+        }
+
         for (int led = 1; led <= 24; led++) {
             ledManager->ledBrightnessSet(led, 0);
         }
