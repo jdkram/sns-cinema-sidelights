@@ -10,7 +10,7 @@ main
 .vscode/
 .DS_Store
 *.swp
-simulator/__pycache__/
+__pycache__/
 
 # Generated print assets
 *.odt
