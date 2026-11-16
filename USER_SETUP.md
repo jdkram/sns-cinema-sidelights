@@ -10,11 +10,18 @@ This guide is for volunteers who need to set up a replacement microSD card and g
 
 Current behaviour of the 5 physical buttons:
 
-1. **Button 1**: Ambient (slow random fades)
-2. **Button 2**: Fade out (all lights gradually off)
-3. **Button 3**: Heartbeat (double pulse loop)
-4. **Button 4**: Fade-in sparkle (sparkles then reaches full brightness, slow 60 second build up)
-5. **Button 5**: Knight Rider sweep (back-and-forth moving light)
+1. **Button 1**: Shimmer (pre-show ambience, slow irregular drift)
+2. **Button 2**: Off (quick 3-second fade to black from whatever is showing)
+3. **Button 3**: Breathe (slow, regular pulse)
+4. **Button 4**: Full (house lights, 100%, the only silent setting)
+5. **Button 5**: Countdown (film starting: five slow breaths, each dimmer, then black, ~36 s)
+
+Every change fades smoothly (no flashing). Anything below full makes the power supply
+hum faintly (audible in the front rows). That's a known fault, see `PSU_FAULT.md`.
+
+Since 16 Nov 2026 these are run by a Python controller (`tools/buttons.py`,
+service `sns-sidelights-py`). The older C++ patterns are disabled while the power
+supply fault limits what the lights can show.
 
 If the observed behaviour does not match this list, ask a maintainer whether a newer pattern version has been deployed.
 

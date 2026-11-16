@@ -118,7 +118,7 @@ def wave(lights, period=6.0):
     run(frame, lights)
 
 
-def fadeout(lights, seconds=10.0):
+def fadeout(lights, seconds=3.0):
     """House lights down: 100% to FLOOR over `seconds`, then cut to off."""
     def frame(t):
         x = min(1.0, t / seconds)

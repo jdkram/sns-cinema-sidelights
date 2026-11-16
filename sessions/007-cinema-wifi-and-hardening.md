@@ -205,3 +205,73 @@ Revisit for the OS reflash.
 Gotcha: `at` isn't installed on this image. Use
 `sudo systemd-run --unit=revert-x --on-active=10min /bin/sh -c '...'` for revert
 timers, and cancel with `sudo systemctl stop revert-x.timer`.
+
+---
+
+## Afternoon: session 006 tests, new patterns, Python controller
+
+**Session 006 hardware tests** were run remotely (results in
+`sessions/006-hardware-truth.md`). Diagnosis: the PWM-40 supply can't drive a partial
+load. Nothing lights below 20 of 24 channels, and any channel off dims the whole wall
+and makes it hum. Summary for a circuits person, with where to measure:
+**`PSU_FAULT.md`**.
+
+**Patterns.** `tools/patterns.py` (live pattern player) and `tools/pick.sh` (numbered
+menu) were used to try patterns on the wall. With this PSU only **whole-wall** changes
+read properly:
+
+- Per-panel variation (shimmer, wave) shows as one synchronised pulse.
+- Column on/off (shadow) makes the **whole room flash** as the supply jumps between
+  states. Removed from the menu, and not to be used until the PSU is replaced.
+
+Hum is audible from the front rows, less so at row G.
+
+**Python controller deployed** (`tools/buttons.py`, unit
+`config/systemd/sns-sidelights-py.service`, `Conflicts=` the C++ unit):
+
+| Button | Pattern | Notes |
+|---|---|---|
+| 1 | shimmer | pre-show ambience |
+| 2 | fadeout | quick fade from the **current** brightness (3 s from full), then off |
+| 3 | breathe | 8 s cycle |
+| 4 | full | house lights, 100%. Also the state at boot |
+| 5 | countdown5 | 5 dimming breaths (~7 s each), then off |
+
+- Every switch crossfades over 1.5 s (photosensitivity-safe). The controller sets
+  1000 Hz at start, because the chips power up at ~200 Hz, which stutters badly on
+  this PSU.
+- Buttons are read via `/sys/class/gpio` (no packages). The pins read 0 at rest.
+- **The physical buttons had NOT been pressed under the Python service when this was
+  written.** Test them on the next visit, or check
+  `journalctl -u sns-sidelights-py | grep button`.
+
+Switch back to the C++ controller:
+
+```bash
+sudo systemctl disable --now sns-sidelights-py.service
+sudo systemctl enable --now sns-sidelights.service
+```
+
+## End-of-day state (2026-11-16)
+
+- Pi on cinema Wi-Fi with a reserved IP (servers range, see Nextcloud/BT Hub).
+  Hotspots stay as fallback networks.
+- SSH keys on the Pi: KUSANAGI + Jonny's two GitHub keys (`github.com/jdkram.keys`).
+  Password login is off. From off-site, jump through a tailnet PC at the cinema.
+- Stretch fully updated within its archive. Kernel stays at 4.9 until the reflash.
+- Service: `sns-sidelights-py` enabled; `sns-sidelights` (C++) disabled, still built.
+
+## Next steps
+
+1. **Press each booth button** under the Python controller and check that 2 fades from
+   the current level.
+2. **Hardware person:** measure the 12 V supply (`PSU_FAULT.md`), identify the
+   switching stage, photograph the box. Not alone, not at height alone.
+3. **Replace the PSU** with a constant-voltage 12 V unit if the measurements confirm it.
+   After that, re-test single LEDs and the floor, and bring back per-panel and column
+   patterns (with fades).
+4. Map the middle LED columns (only 1-4 = far left and 21-24 = far right are known).
+5. Prune the old personal-hotspot Wi-Fi entries. Update the projectionist guide on
+   Nextcloud with the new button map.
+6. Later: fresh high-endurance SD card with current Raspberry Pi OS. Keep this card as
+   the fallback.

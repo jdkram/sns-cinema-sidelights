@@ -8,7 +8,7 @@ Patterns only use whole-wall changes, which that PSU can display. Every change i
 smooth crossfade (no flashes), so it is photosensitivity-safe.
 
     Button 1  shimmer     pre-show ambience, irregular drift
-    Button 2  fadeout     off: fades down from whatever is showing, then off
+    Button 2  fadeout     off: quick fade (3 s from full) from whatever is showing, then off
     Button 3  breathe     slow regular pulse
     Button 4  full        house lights, 100% (the only silent state)
     Button 5  countdown5  film starting: 5 dimming breaths, then off
@@ -84,13 +84,13 @@ def p_shimmer(start):
         yield dict(cur)
 
 
-def p_fadeout(start, full_s=10.0):
+def p_fadeout(start, full_s=3.0):
     """Fade every panel down from where it is now to the floor, then off."""
     top = max(start.values())
     if top <= FLOOR:
         yield uniform(0.0)
         return
-    secs = max(2.0, full_s * (top - FLOOR) / (100 - FLOOR))
+    secs = max(1.0, full_s * (top - FLOOR) / (100 - FLOOR))
     t0 = time.time()
     while True:
         x = ease((time.time() - t0) / secs)
@@ -98,7 +98,7 @@ def p_fadeout(start, full_s=10.0):
                for n in LEDS}
         if x >= 1.0:
             break
-    time.sleep(0.5)
+    time.sleep(0.2)
     yield uniform(0.0)
 
 

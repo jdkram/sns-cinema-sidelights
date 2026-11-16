@@ -21,7 +21,7 @@ while :; do
 
   Proposed button map (session 007)
   1  shimmer     pre-show ambience, irregular drift
-  2  fadeout     off: 10 s fade to black
+  2  fadeout     off: 3 s fade to black
   3  breathe     slow regular pulse
   4  full        house lights, 100% (silent)
   5  countdown5  film starting: 5 dimming breaths, then black (~36 s)

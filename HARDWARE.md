@@ -4,6 +4,8 @@ human-authors: Jonny Kram
 
 # Hardware Specifications: LED Driver
 
+> **Known fault (2026-11-16):** this supply appears unable to drive a partial or PWM load. See [PSU_FAULT.md](PSU_FAULT.md).
+
 The sidelight system uses a **Mean Well PWM-40-12** LED driver. This is an IP67-rated constant voltage power supply designed to provide a PWM (Pulse Width Modulation) style output, which is why it works well for the dimmable LED strips in the boxlights.
 
 ## Device Label Information
