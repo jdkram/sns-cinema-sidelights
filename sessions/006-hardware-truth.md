@@ -304,12 +304,65 @@ Cinema Wi-Fi joined? ____   IP: ____   Reservation set? ____
 ## Results summary
 
 ```
-Polarity:
-Single LED visible:
-Floor vs frequency:
-Physical map done:
-Switching stage parts seen:
+Polarity:                   active-low (C++ is correct)
+Single LED visible:         NO. Nothing lights until 20 of 24 channels are on.
+Floor vs frequency:         1017 Hz: floor between 25% and 30%. 254 Hz: 25% lights
+                            but stutters violently (unusable).
+Physical map done:          partial. LEDs 1-4 = far-left column, 21-24 = far-right column.
+Switching stage parts seen: not inspected (needs access at height)
 ```
+
+### Results (run 2026-11-16, remotely during session 007)
+
+The tests were run turn by turn from KUSANAGI over SSH, with Jonny alone in the
+auditorium reporting what he saw. Instead of `probe.py`'s timed commands, each state
+was set with a one-liner (`import probe; Lights(...).show()`), which the PCA9685s then
+hold until the next write. That avoided chat latency spoiling the timed tests.
+Service stopped throughout. `probe.py info`: both boards ~1017 Hz, totem-pole, no
+invert, awake.
+
+| State (all at 1017 Hz unless noted) | What the wall did |
+|---|---|
+| All pins LOW (`raw_all`) | All lit, max brightness |
+| All pins HIGH | All dark |
+| LED 1 only, 100% | Dark |
+| LED 5 only, 100% | Dark |
+| LED 13 only, 100% (other board) | Dark |
+| LEDs 1-6, 100% | Dark |
+| LEDs 1-12, 100% (all of board 0x60) | Dark |
+| All 24, 100% (`set_all`, control) | Very bright, **silent** |
+| 23 on (LED 1 off) | LED 1 dark, **all others at mid brightness**, **audible hum** |
+| 20 on (LEDs 1-4 off) | Rest at mid, hum about the same. LEDs 1-4 = far-left column |
+| 20 on (LEDs 21-24 off) | Rest at mid. LEDs 21-24 = far-right column |
+| 19 on (LEDs 1-5 off) | Whole wall dark |
+| 18 on, 16 on | Whole wall dark |
+| All 24 at 50% | Lit, ~70% of max, slight hum |
+| All 24 at 30% | Lit, dim, hum maybe louder |
+| All 24 at 25% | Dark |
+| All 24 at 25%, **254 Hz** | Lit but stuttering violently ("epilepsy inducing"). Stopped at once |
+
+**Diagnosis: the power supply (Mean Well PWM-40-12) can't drive a partial or switched load.**
+
+- Every panel dims **together** when any channel is off, and a hum starts at
+  anything less than full load. A constant-voltage supply in good order wouldn't care.
+- There's a sharp cliff at **20 of 24** channels. It depends on how many are on, not
+  which ones (the left or right column off gives the same result).
+- This explains both long-standing symptoms. Single-LED and sparse patterns
+  (KnightRider, sweeps, Ember) are below the cliff. Low PWM levels (the ~27% floor)
+  are too.
+- Lowering the PWM frequency moves the floor but causes violent stutter. That looks
+  like the PWM-40's own output chopping clashing with ours, so frequency isn't a fix.
+- The March conclusion ("the event engine can't drive single channels") is wrong.
+  The software was never the main fault.
+
+**Fix:** replace the PWM-40 (a dimming LED driver) with a plain constant-voltage
+12 V supply, e.g. Mean Well LRS-75-12 (~£20), sized with headroom over the measured
+full load. Mains work at height: a competent person, not alone. Before buying,
+ideally confirm with a multimeter on the 12 V output: all 24 on vs 19 on.
+
+**Working envelope until then (for pattern design):** ≥ 20 of 24 channels on, and
+PWM level ≥ ~30%. Only all 24 at 100% is silent and full brightness. Any channel
+off drops the whole wall to "mid".
 
 ## What the results decide
 
