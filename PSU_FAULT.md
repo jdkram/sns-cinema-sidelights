@@ -104,6 +104,23 @@ Two facts say something changed rather than "it never worked": the cinema wiki
 records that the "Mexican wave" pattern used to work before 2023, and the controller
 box was opened and refitted around October 2023.
 
+**Could it have been put back together wrong?** The box was reassembled around the
+time the SD card was restored, so it's worth asking what a reassembly mistake could
+and couldn't do:
+
+- *Pi header or I2C ribbon reversed or shifted:* no. The Pi talks to both PCA9685
+  boards, reads them back correctly, and the booth buttons work.
+- *Phono leads in the wrong sockets:* no. That only changes which lightbox is which
+  number.
+- *The wrong power adapter in the box's round socket:* **yes, this would fit.** If
+  the stripboard's common rail is fed from that socket and someone plugged in a
+  lower-voltage or weaker adapter than the original, the rail would be marginal: fine
+  with every channel on, sagging as channels are held off. Read the adapter's label
+  (volts and amps) from the floor if the lead can be followed.
+- *A power or ground wire to the stripboard left off or on the wrong pin* (for
+  example the PCA9685 boards' V+ terminal, or the rail fed from the Pi's 3.3 V pin
+  instead of 5 V): also fits, and the rail voltage reading below would show it.
+
 It predicts something easy to check: **every phono socket reads the same voltage**,
 whichever channels are commanded: about 10 V with all on, something in between with
 23 on, near zero with 19 on.

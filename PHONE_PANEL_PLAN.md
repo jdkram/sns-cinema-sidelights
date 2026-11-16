@@ -19,6 +19,9 @@ happens to the network or the page. Earlier thinking:
 - **Safety rules:** the pattern whitelist, the crossfade and the rate limit all live
   in the controller, so no trigger can get round them.
 - **Auth:** a shared key carried in the link and a QR code posted inside the booth.
+- **Phones can't darken the room** (decided 2026-11-16, see below). The page offers
+  House lights up, Pre-show shimmer and Slow breathe. Fade to dark and the countdown
+  stay on the booth buttons.
 
 ## 1. Options considered
 
@@ -49,10 +52,23 @@ home-screen icon carries it. Every request must include it. No lockout on bad ke
 (a lockout would let a stranger lock volunteers out). Without the key the page says
 only "Scan the QR code in the projection booth".
 
-**What the key doesn't stop.** Someone on the same Wi-Fi with the Wi-Fi password
-could sniff the key. They could then do only what the controller allows: one slow
-whole-wall change every few seconds, with booth button 4 and "House lights up"
-always winning. Whether that's good enough depends on open question 1.
+**What the key doesn't stop, and what follows from it.** The public can join the
+Wi-Fi the Pi is on, and the page is plain HTTP, so anyone on it could capture the key
+as a volunteer uses the page. The auditorium is very dark with the sidelights off
+and the main lights down. Put together: a key that can be captured must not be able
+to black out the room.
+
+So the web side gets its own, shorter whitelist: `full`, `shimmer` and `breathe`
+only. `fadeout` and `countdown5` are accepted from the booth buttons and from SSH,
+never from the page. A captured key then lets a stranger swap between lit patterns,
+slowly, and nothing else. Before building, check that the lowest point of `breathe`
+and `shimmer` still leaves the room safely lit.
+
+If darkening from a phone is wanted later, the route is signed requests: the key
+stays in the part of the link after `#` (which browsers never send), and the page
+signs each press with it together with a one-time number from the Pi. That's about
+100 more lines, including a small SHA-256 in the page, because browsers don't offer
+their built-in one over plain HTTP.
 
 ## 2. Control interface
 
@@ -64,7 +80,8 @@ crossfade. Add a `request(name, source)` in front of it, used by both the button
 poll and the socket:
 
 1. The name must be in the `BUTTONS` table, else it's dropped. Column patterns aren't
-   in that table, so the web can't reach them.
+   in that table, so nothing can reach them. A press from the page must also be in
+   the lit-only list (`full`, `shimmer`, `breathe`).
 2. Physical buttons are always accepted, exactly as now.
 3. Other sources are refused within `WEB_MIN_GAP_S` (suggest 4 s, tune on the wall)
    of the last accepted change from any source.
@@ -92,10 +109,11 @@ only (a white page lights up the booth).
 
 1. Status line: "Now: Slow breathe. Set from booth button 3, 2 minutes ago."
 2. **House lights up**, first and largest, never disabled.
-3. The other four in booth order, with the booth button number and a plain label:
-   1 Pre-show shimmer; 2 Fade to dark; 3 Slow breathe; 5 Film starting: countdown,
-   then dark (about 35 s).
-4. Footer: "If this page stops working, use the buttons on the black box in the booth."
+3. The other two, with the booth button number and a plain label:
+   1 Pre-show shimmer; 3 Slow breathe.
+4. A line of plain text: "To fade to dark or start the countdown, use buttons 2 and 5
+   in the booth." The status line still reports those when the booth sets them.
+5. Footer: "If this page stops working, use the buttons on the black box in the booth."
 
 No confirm dialogs. The undo is "House lights up".
 
@@ -158,13 +176,22 @@ Python 3.10+, where the Pi has 3.5.
 
 ## 6. Questions that change the design
 
-1. **Do the public get the password for the Wi-Fi the Pi is on,** or only volunteers
-   and hirers? This decides whether a shared key over plain HTTP is enough.
-2. **With the sidelights off, how dark is the auditorium,** and does the fire risk
-   assessment mention them? This decides whether "Fade to dark" and the countdown
-   belong on phones at all.
-3. **Should "House lights up" need the key?** Suggested: yes, with booth button 4 as
+Answered 2026-11-16 (Jonny):
+
+- **The public can join the Wi-Fi the Pi is on.** So a shared key over plain HTTP
+  can be captured. Hence the lit-only list above.
+- **The auditorium is very dark with the sidelights off** when the main lights are
+  down. No current fire risk assessment was found on Nextcloud (only build-era
+  documents from 2016-2019, which don't mention the lightboxes). Worth asking
+  whoever holds the current one before anything automated dims the room.
+
+Still open:
+
+1. **Should "House lights up" need the key?** Suggested: yes, with booth button 4 as
    the route that always works.
-4. **Is control from outside the building wanted?** Assumed no.
-5. **Who holds the card and the key?** Is "posted inside the booth only" acceptable
+2. **Is control from outside the building wanted?** Assumed no.
+3. **Who holds the card and the key?** Is "posted inside the booth only" acceptable
    as the rule for who may use it?
+4. **Is a lit-only page still worth building?** The people who darken the room are
+   in the booth, next to the buttons. If the main wish was a countdown from the
+   stalls, signed requests move from "later" to phase 2.
