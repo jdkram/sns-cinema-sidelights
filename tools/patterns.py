@@ -162,6 +162,31 @@ def countdown(lights, seconds=60.0, fade_s=2.5, glow=FLOOR):
     print("Countdown finished: lights off.")
 
 
+def countdown5(lights, breaths=5, breath_s=7.0):
+    """Film countdown, whole wall: 5 slow breaths, each peak dimmer than the last, then fade to off.
+
+    Works with the current PSU (whole-wall changes only). Photosensitivity-safe: one
+    breath every ~7 s, smooth cosine curves, no steps or flashes.
+    """
+    top, low = 100.0, FLOOR + 3
+
+    def frame(t):
+        i = min(int(t / breath_s), breaths - 1)          # which breath (0..4)
+        phase = (t - i * breath_s) / breath_s             # 0..1 within breath
+        peak = top - (top - (low + 10)) * i / (breaths - 1)  # 100 down to ~45
+        trough = low
+        x = (1 + math.cos(2 * math.pi * phase)) / 2       # 1 -> 0 -> 1 (starts at peak)
+        if i == breaths - 1 and phase > 0.5:
+            x = 0.0                                       # last breath ends low
+        level = trough + (peak - trough) * x
+        return {n: level for n in range(1, 25)}
+    run(frame, lights, duration=breaths * breath_s)
+    time.sleep(1.0)
+    lights.set_all(0)
+    lights.show()
+    print("Countdown finished: lights off.")
+
+
 DEMO_ORDER = [("full", 8), ("breathe", 40), ("shimmer", 40), ("shadow", 40),
               ("wave", 40), ("countdown", None), ("fadeout", None)]
 
@@ -195,7 +220,7 @@ def colmap(lights, hold=4.0):
 
 PATTERNS = {
     "full": full, "breathe": breathe, "shimmer": shimmer, "shadow": shadow,
-    "wave": wave, "fadeout": fadeout, "countdown": countdown, "colmap": colmap, "demo": demo,
+    "wave": wave, "fadeout": fadeout, "countdown": countdown, "countdown5": countdown5, "colmap": colmap, "demo": demo,
 }
 
 

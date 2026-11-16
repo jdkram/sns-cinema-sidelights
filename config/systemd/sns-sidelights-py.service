@@ -1,0 +1,21 @@
+[Unit]
+Description=Star and Shadow sidelight controller (Python, tools/buttons.py)
+# Runs instead of sns-sidelights.service (C++). Only enable one of them:
+#   switch to Python:  sudo systemctl disable --now sns-sidelights.service
+#                      sudo systemctl enable --now sns-sidelights-py.service
+#   switch back to C++: swap the two names above.
+Conflicts=sns-sidelights.service
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/sidelights
+# Same boot delay as the C++ service (power/I2C settle). Absolute path: Stretch's
+# systemd 232 ignores relative ExecStartPre paths.
+ExecStartPre=/bin/sleep 30
+ExecStart=/usr/bin/python3 -u /home/pi/sidelights/tools/buttons.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
