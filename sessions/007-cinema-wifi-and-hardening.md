@@ -241,9 +241,9 @@ Hum is audible from the front rows, less so at row G.
   1000 Hz at start, because the chips power up at ~200 Hz, which stutters badly on
   this PSU.
 - Buttons are read via `/sys/class/gpio` (no packages). The pins read 0 at rest.
-- **The physical buttons had NOT been pressed under the Python service when this was
-  written.** Test them on the next visit, or check
-  `journalctl -u sns-sidelights-py | grep button`.
+- **All five booth buttons verified** under the Python service (15:43-15:45; log:
+  `journalctl -u sns-sidelights-py | grep button`). Button 1 once logged twice 1 s
+  apart (double press or bounce, harmless). If bounce shows up, raise `DEBOUNCE`.
 
 Switch back to the C++ controller:
 
@@ -263,15 +263,13 @@ sudo systemctl enable --now sns-sidelights.service
 
 ## Next steps
 
-1. **Press each booth button** under the Python controller and check that 2 fades from
-   the current level.
-2. **Hardware person:** measure the 12 V supply (`PSU_FAULT.md`), identify the
+1. **Hardware person:** measure the 12 V supply (`PSU_FAULT.md`), identify the
    switching stage, photograph the box. Not alone, not at height alone.
-3. **Replace the PSU** with a constant-voltage 12 V unit if the measurements confirm it.
+2. **Replace the PSU** with a constant-voltage 12 V unit if the measurements confirm it.
    After that, re-test single LEDs and the floor, and bring back per-panel and column
    patterns (with fades).
-4. Map the middle LED columns (only 1-4 = far left and 21-24 = far right are known).
-5. Prune the old personal-hotspot Wi-Fi entries. Update the projectionist guide on
+3. Map the middle LED columns (only 1-4 = far left and 21-24 = far right are known).
+4. Prune the old personal-hotspot Wi-Fi entries. Update the projectionist guide on
    Nextcloud with the new button map.
-6. Later: fresh high-endurance SD card with current Raspberry Pi OS. Keep this card as
+5. Later: fresh high-endurance SD card with current Raspberry Pi OS. Keep this card as
    the fallback.
