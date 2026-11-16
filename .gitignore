@@ -15,3 +15,4 @@ __pycache__/
 # Generated print assets
 *.odt
 qr_github_repo.png
+.claude/settings.local.json
