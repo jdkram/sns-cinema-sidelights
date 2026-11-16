@@ -5,8 +5,7 @@ Description=Star and Shadow sidelight controller
 Type=simple
 User=pi
 WorkingDirectory=/home/pi/sidelights
-ExecStartPre=sleep 30
-ExecStart=/home/pi/sidelights/main
+ExecStart=/usr/bin/python3 -u -m sidelights
 Restart=always
 RestartSec=5
 

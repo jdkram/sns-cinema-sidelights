@@ -1,16 +1,11 @@
-# Build artefacts
-build/
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
-main
+# Python
+__pycache__/
+*.pyc
 
 # Editor and OS noise
 .vscode/
 .DS_Store
 *.swp
-__pycache__/
 
 # Generated print assets
 *.odt

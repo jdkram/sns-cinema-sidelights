@@ -30,10 +30,12 @@ Options:
     --hold N        seconds per step for count/sweep/holes (default 4)
     --base N        level (%) for the "off" LEDs in one/count/sweep, e.g. 20 keeps
                     the power supply loaded while staying below the visible floor
+    --leds N        ramp only LEDs 1-N (default 24). If the floor moves with N, it is
+                    set by total load on the supply, not by each channel
     --stagger       spread channels' switch-on points across the PWM cycle,
                     so they don't all load the power supply at the same instant
 
-LED numbering matches the C++ (src/CLEDManager.cpp): LED 1-12 on board 0x60,
+LED numbering matches sidelights/config.py: LED 1-12 on board 0x60,
 13-24 on board 0x40, channels 2-7 then 13 down to 8 on each board.
 """
 
@@ -189,7 +191,9 @@ def main():
     p.add_argument("--hold", type=float, default=4.0)
     p.add_argument("--stagger", action="store_true")
     p.add_argument("--base", type=float, default=0.0)
+    p.add_argument("--leds", type=int, default=24)
     a = p.parse_args()
+    a.leds = max(1, min(24, a.leds))
 
     if not a.dry_run and subprocess.call(
             ["systemctl", "is-active", "--quiet", "sns-sidelights.service"]) == 0:
@@ -264,10 +268,13 @@ def main():
                 time.sleep(a.hold)
 
         elif c == "ramp":
-            print("Ramping all LEDs up 1% every 0.5 s. Press Ctrl+C the moment you see light.")
+            print("Ramping LEDs 1-%d up 1%% every 0.5 s (rest at %g%%). "
+                  "Press Ctrl+C the moment you see light." % (a.leds, a.base))
             level = 0
             while level <= 100:
-                lights.set_all(level)
+                lights.set_all(a.base)
+                for led in range(1, a.leds + 1):
+                    lights.set(led, level)
                 lights.show()
                 sys.stdout.write("\r  level %3d%%" % level)
                 sys.stdout.flush()
