@@ -303,8 +303,9 @@ saw what, and where.
    transistor's markings.
 3. Next visit: follow `sessions/008-controller-box-fault.md`.
 4. On the Pi: `git fetch && git reset --hard origin/main`. The repo history was
-   rewritten on 2026-11-16, so the Pi's old checkout no longer matches. Remove the
-   stray `sidelights/` and `sns_cinema_sidelights/` copies first if they aren't needed.
+   rewritten on 2026-11-16, so the Pi's checkout (old `cfeb574`) no longer matches.
+   The files differ only in comment lines, so nothing is urgent. Remove the stray
+   `sidelights/` and `sns_cinema_sidelights/` copies if they aren't needed.
 5. Map the middle LED columns (only 1-4 = far left and 21-24 = far right are known),
    and confirm whether it's 24 separate lightboxes or 4 boxes of 6.
 6. Prune the old personal-hotspot Wi-Fi entries. Update the projectionist guide on
