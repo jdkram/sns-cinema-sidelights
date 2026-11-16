@@ -4,9 +4,11 @@ human-authors: Jonny Kram
 
 # Hardware Specifications: LED Driver
 
-> **Known fault (2026-11-16):** this supply appears unable to drive a partial or PWM load. See [PSU_FAULT.md](PSU_FAULT.md).
+> **Corrected 2026-11-16** from the 2018 build photos. Earlier versions of this page said one driver fed all 24 panels with its DIM wires unused. Both were guesses and both were wrong. Fault summary and tests: [PSU_FAULT.md](PSU_FAULT.md).
 
-The sidelight system uses a **Mean Well PWM-40-12** LED driver. This is an IP67-rated constant voltage power supply designed to provide a PWM (Pulse Width Modulation) style output, which is why it works well for the dimmable LED strips in the boxlights.
+**Each lightbox has its own Mean Well PWM-40-12** LED driver (24 in total), mounted on the lightbox's back panel with its own mains lead. It's an IP67 constant-voltage driver with a dimming input. The controller box doesn't power the lights. It sends each driver a dimming signal down a phono (RCA) lead.
+
+Source: `Lightbox 00.JPG` to `Lightbox 24.JPG` (March 2018) in the Nextcloud folder `Archive/Build (2016-2019)/Basecamp docs/Rooms & Entrances/Cinema/Lightboxes/`, and the 2023 controller box photos in `Collective - Tech/Cinema box lights/0 - Project info/`. Not yet re-checked on site.
 
 ## Device Label Information
 
@@ -23,20 +25,22 @@ The sidelight system uses a **Mean Well PWM-40-12** LED driver. This is an IP67-
 
 | Wire | Function | Color | Notes |
 |------|----------|-------|-------|
-| **AC/L** | Live | BROWN | Connected to custom PCB |
-| **AC/N** | Neutral | BLUE | Connected to custom PCB |
-| **V+** | Positive Output | RED | To LED strips |
-| **V-** | Negative Output | BLACK | To LED strips |
-| **DIM+** | Dimming Control + | BLUE | Not connected (default 100%) |
-| **DIM-** | Dimming Control - | WHITE | Not connected (default 100%) |
+| **AC/L** | Live | BROWN | To the IEC inlet on the lightbox's green PCB |
+| **AC/N** | Neutral | BLUE | To the IEC inlet on the lightbox's green PCB |
+| **V+** | Positive Output | RED | To that lightbox's LED strip |
+| **V-** | Negative Output | BLACK | To that lightbox's LED strip |
+| **DIM+** | Dimming Control + | BLUE | Soldered to the lightbox's phono socket |
+| **DIM-** | Dimming Control - | WHITE | Soldered to the lightbox's phono socket |
 
 ## Troubleshooting Notes
 
 ### Power and Connectivity
-The AC input (Brown/Blue) is wired into a custom PCB with an IEC inlet. If the sidelights aren't firing up, check the solder joints or terminals on that green PCB first—they often take the most mechanical stress when the power leads are plugged and unplugged.
+On each lightbox, the AC input (Brown/Blue) is wired into a small green PCB with an IEC inlet. If one lightbox is dead, check its mains lead first, then the solder joints or terminals on that green PCB first—they often take the most mechanical stress when the power leads are plugged and unplugged.
 
 ### Dimming Control
-The DIM wires (Blue/White) appear to be tucked away or cut back. This model dims the output itself based on a signal to those wires, but if they are unconnected, it should just output at 100% brightness by default. In this installation, dimming is handled by the PCA9685 PWM controller downstream of the driver, so these wires are not needed.
+The DIM wires (Blue/White) go to a phono socket on the lightbox, and a phono lead runs from there to the controller box. The driver dims its own output according to what it sees on those wires: left open it runs at 100%, shorted it turns off, and a PWM signal gives a level in between. In the controller box each PCA9685 output drives a small transistor (through a resistor) that shorts or releases that lightbox's DIM pair.
+
+A lightbox with its phono lead unplugged should therefore sit at full brightness whatever the Pi does. That's a handy test.
 
 ---
 
@@ -81,40 +85,42 @@ CONTROLLER BOX
 │  ┌─────────┐       ┌─────────┐         │
 │  │PCA9685  │       │PCA9685  │         │
 │  │0x40     │       │0x60     │         │
-│  │LEDs 1-12│       │LEDs13-24│         │
+│  │LEDs13-24│       │LEDs 1-12│         │
 │  └────┬────┘       └────┬────┘         │
 │       │  I2C bus        │              │
 │       │  at 1000 Hz PWM │              │
 └───────┼─────────────────┼──────────────┘
         │ PWM signal      │ PWM signal
         ▼                 ▼
-  [switching element — not fully documented
-   in this repo; the active-low wiring in
-   CLEDManager.cpp implies a MOSFET or
-   transistor inverting the signal before
-   the LED strips]
+  24× resistor + small transistor (TO-92)
+  on stripboard: inverts the signal and
+  shorts/releases one DIM pair each
         │
-        │ switched 12V
         ▼
-┌────────────────────┐
-│ Mean Well PWM-40-12│
-│ AC mains → 12V DC  │
-│ DIM wires unused:  │
-│ constant full V    │
-└────────┬───────────┘
-         │ 12V DC rail
-    ┌────┴────┐
-    ▼         ▼
-[LED strips in lightboxes — 24 channels
- total, 6 per box, 4 boxes]
+  24× phono socket on the controller box
+  (sleeves linked together: shared common)
+        │
+        │ 24× phono lead: dimming signal only
+        │ (~10 V, microamps, from the driver)
+        ▼
+┌──────────────────────────┐
+│ In EACH lightbox:        │
+│ mains → IEC inlet PCB    │
+│ → Mean Well PWM-40-12    │
+│   (DIM+/DIM− from phono) │
+│ → 12 V → its LED strip   │
+└──────────────────────────┘
+  × 24 lightboxes
 ```
 
 ### What this diagram clarifies
 
-**The Mean Well does no dimming.** Its DIM wires are cut/unused so it just supplies a steady 12V rail. All brightness control is done entirely by the PCA9685 via 1kHz PWM.
+**The Mean Wells do the dimming.** The PCA9685 doesn't switch any 12 V. Its ~1 kHz PWM is a control signal, and each lightbox's driver turns that into brightness. Two PWM stages are involved (ours, then the driver's own output chopping), which is the likely reason low frequencies stutter.
 
-**Active-low wiring.** `CLEDManager.cpp` (the `ledBrightnessSet` function) shows that `pwmWrite(0)` = LED fully on, `pwmWrite(4095)` = LED off. This is the opposite of what you'd expect from the PCA9685 datasheet directly. The inversion happens in a switching element (likely a MOSFET or transistor array) between the PCA9685 output pins and the LED strip. This element is not explicitly documented in the current hardware notes — worth mapping during a future session.
+**Active-low wiring.** `pwmWrite(0)` = lightbox fully on, `pwmWrite(4095)` = off. PCA9685 output high makes the transistor conduct, which shorts DIM and turns the driver off. Transistor type and resistor values haven't been read yet.
 
-**I2C is the software-to-hardware boundary.** Everything above the PCA9685 is software; everything below is hardware. If `i2cdetect -y 1` shows both boards (0x40 and 0x60) but sequences don't behave correctly, the problem is almost certainly in the software or the wiringPi/pca9685 library layer, not in the LED strips or power supply.
+**Layout is unconfirmed.** The build photos show 24 separately numbered lightbox panels. Older notes here said "6 per box, 4 boxes". Check on site which is right.
+
+**I2C is the software-to-hardware boundary.** Everything above the PCA9685 is software; everything below is hardware. If `i2cdetect -y 1` shows both boards (0x40 and 0x60) but sequences don't behave correctly, check the software first. Since session 006 (2026-11-16) we know there's also a real electrical fault below this line, see [PSU_FAULT.md](PSU_FAULT.md).
 
 **wiringPi dependency.** The pca9685 library bundled in this repo (`pca9685/src/pca9685.c`, written 2014) is a wiringPi devLib extension. It registers the PCA9685 channels as virtual GPIO pins via `wiringPiNewNode`. This means the system wiringPi version matters: wiringPi was deprecated by its author in 2019, and behaviour differences have been observed on newer Raspberry Pi OS versions. If the Pi was re-flashed with a post-2019 Raspbian/Pi OS, this is a potential source of subtle breakage even if I2C itself is working.

@@ -341,6 +341,15 @@ invert, awake.
 | All 24 at 25% | Dark |
 | All 24 at 25%, **254 Hz** | Lit but stuttering violently ("epilepsy inducing"). Stopped at once |
 
+> **Correction, 2026-11-16 evening.** The diagnosis and fix below are wrong about the
+> cause. The 2018 build photos show one PWM-40-12 **in each lightbox**, dimmed by a
+> signal lead from the controller box, not one supply feeding all 24. The observations
+> in the table stand. The fault has to be in something the 24 drivers share, most
+> likely the control side in the controller box. **Don't buy an LRS-75-12.** Current
+> thinking and tests: `PSU_FAULT.md`. The text below is kept as the record of what we
+> believed at the time. The "40 W total, 1.7 W per panel" figure in test 6 is wrong
+> for the same reason.
+
 **Diagnosis: the power supply (Mean Well PWM-40-12) can't drive a partial or switched load.**
 
 - Every panel dims **together** when any channel is off, and a hum starts at

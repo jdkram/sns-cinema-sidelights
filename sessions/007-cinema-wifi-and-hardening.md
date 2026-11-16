@@ -88,7 +88,8 @@ Then turn the hotspot off, move KUSANAGI back to the cinema Wi-Fi, and find the 
 
 - [ ] Joined. IP: ______ AP/BSSID: ______
 - [ ] DHCP reservation on the BT Hub (it's the DHCP server). Reserved IP: ______
-- [ ] Remote path works: `ssh -J weebo pi@<ip>` (and via weebo over Tailscale from off-site)
+- [ ] Remote path works: `ssh -J weebo pi@<ip>` (and via weebo over Tailscale from off-site).
+      Confirmed from off-site that evening.
 
 ## Phase 4: Can it hold the link from the far side?
 
@@ -214,7 +215,7 @@ timers, and cancel with `sudo systemctl stop revert-x.timer`.
 `sessions/006-hardware-truth.md`). Diagnosis: the PWM-40 supply can't drive a partial
 load. Nothing lights below 20 of 24 channels, and any channel off dims the whole wall
 and makes it hum. Summary for a circuits person, with where to measure:
-**`PSU_FAULT.md`**.
+**`PSU_FAULT.md`**. (Cause corrected that evening, see "Evening review" below.)
 
 **Patterns.** `tools/patterns.py` (live pattern player) and `tools/pick.sh` (numbered
 menu) were used to try patterns on the wall. With this PSU only **whole-wall** changes
@@ -261,15 +262,53 @@ sudo systemctl enable --now sns-sidelights.service
 - Stretch fully updated within its archive. Kernel stays at 4.9 until the reflash.
 - Service: `sns-sidelights-py` enabled; `sns-sidelights` (C++) disabled, still built.
 
+## Evening review from home (2026-11-16)
+
+### Remote access
+
+- [x] Off-site access works: SSH from home, jumping through a cinema PC on Tailscale.
+      A jump host only carries the connection. The Pi still checks the key of the
+      machine you start from, so that machine's key has to be on the Pi.
+- [x] A shared emergency key is installed, for when Jonny isn't around. How to use it
+      is in the README of the Nextcloud folder `Collective - Tech / Cinema box lights`.
+- Addresses, host names and key details are kept out of this public repo. They're in
+  Jonny's private notes and the Nextcloud folder.
+
+### Hardware: the "one power supply" claim was wrong
+
+Checked where the Mean Well claim came from. The model number is real (it's on the
+label in the 2018 build photos), but "one supply feeds all 24, DIM wires unused" was a
+guess in `HARDWARE.md` that later notes repeated as fact. The photos show one
+PWM-40-12 **per lightbox**, each dimmed through a phono lead from the controller box.
+`PSU_FAULT.md` and `HARDWARE.md` are corrected, and session 006 carries a correction
+note. The observations stand. The cause is now thought to be on the control side, in
+the controller box.
+
+The `python-controller` branch (pushed that morning, not merged) had already made this
+correction in its own `HARDWARE.md`, as an inference from the 2023 photos. The
+afternoon's work on `main` didn't pick it up. The 2018 build photos now confirm it.
+That branch also has a slow-rise explanation for the ~27% floor that's worth testing
+(`probe.py freq 200`: does the dark band shrink in proportion?).
+
+Lesson: this is the second time a written-up guess became the working theory (the
+first was March's "event engine" bug). Hardware claims in these notes should say who
+saw what, and where.
+
 ## Next steps
 
-1. **Hardware person:** measure the 12 V supply (`PSU_FAULT.md`), identify the
-   switching stage, photograph the box. Not alone, not at height alone.
-2. **Replace the PSU** with a constant-voltage 12 V unit if the measurements confirm it.
-   After that, re-test single LEDs and the floor, and bring back per-panel and column
-   patterns (with fades).
-3. Map the middle LED columns (only 1-4 = far left and 21-24 = far right are known).
-4. Prune the old personal-hotspot Wi-Fi entries. Update the projectionist guide on
+1. **Don't buy a power supply.** From the floor: count the mains plugs on the
+   "LIGHT BOX ONLY" strips and unplug one to confirm one driver per lightbox.
+2. **At the controller box** (two people): the phono-lead test and the socket voltage
+   readings in `PSU_FAULT.md`. Photograph the stripboard underside and read a
+   transistor's markings.
+3. Next visit: follow `sessions/008-controller-box-fault.md`.
+4. On the Pi: `git fetch && git reset --hard origin/main`. The repo history was
+   rewritten on 2026-11-16, so the Pi's old checkout no longer matches. Remove the
+   stray `sidelights/` and `sns_cinema_sidelights/` copies first if they aren't needed.
+5. Map the middle LED columns (only 1-4 = far left and 21-24 = far right are known),
+   and confirm whether it's 24 separate lightboxes or 4 boxes of 6.
+6. Prune the old personal-hotspot Wi-Fi entries. Update the projectionist guide on
    Nextcloud with the new button map.
-5. Later: fresh high-endurance SD card with current Raspberry Pi OS. Keep this card as
+7. Phone panel for the patterns: see `PHONE_PANEL_PLAN.md`.
+8. Later: fresh high-endurance SD card with current Raspberry Pi OS. Keep this card as
    the fallback.
